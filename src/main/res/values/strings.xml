@@ -4,5 +4,6 @@
     <string name="app_name">CBLiteConsole</string>
     <string name="action_settings">Settings</string>
     <string name="hello_console">Hello console!</string>
+    <string name="console_activity_display_message">Console</string>
 
 </resources>
