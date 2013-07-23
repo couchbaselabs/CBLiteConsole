@@ -8,9 +8,44 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context=".CBLiteConsoleActivity">
 
+    <GridLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_marginTop="30dp"
+            android:id="@+id/gridLayout">
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="All Docs"
+                android:id="@+id/button_alldocs"
+                android:layout_row="0"
+                android:layout_column="0"/>
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DB Stats"
+                android:id="@+id/button_dbstats"
+                android:layout_row="0"
+                android:layout_column="1"/>
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add Doc"
+                android:id="@+id/buttonAddDoc"
+                android:layout_row="0"
+                android:layout_column="2"/>
+    </GridLayout>
+
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello_console" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Where do you want to go today?"
+            android:id="@+id/textView"
+            android:layout_alignParentTop="true"
+            android:layout_alignLeft="@+id/gridLayout"/>
 
 </RelativeLayout>

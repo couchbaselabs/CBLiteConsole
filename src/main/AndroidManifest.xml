@@ -8,7 +8,11 @@
         android:minSdkVersion="7"
         android:targetSdkVersion="16" />
 
-    <application/>
-
+    <application>
+        <activity
+            android:name="com.couchbase.cblite.cbliteconsole.AllDocsActivity"
+            android:label="@string/title_activity_all_docs" >
+        </activity>
+    </application>
 
 </manifest>
