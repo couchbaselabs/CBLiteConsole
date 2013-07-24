@@ -15,18 +15,23 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.couchbase.cblite.CBLDatabase;
+import com.couchbase.cblite.CBLQueryOptions;
+import com.couchbase.cblite.CBLRevision;
 import com.couchbase.cblite.CBLServer;
 import com.couchbase.cblite.ektorp.CBLiteHttpClient;
 import com.couchbase.cblite.router.CBLURLStreamHandlerFactory;
 
+import org.codehaus.jackson.JsonNode;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
 import org.ektorp.ViewQuery;
+import org.ektorp.ViewResult;
 import org.ektorp.android.util.EktorpAsyncTask;
 import org.ektorp.http.HttpClient;
 import org.ektorp.impl.StdCouchDbInstance;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class CBLiteConsoleActivity extends Activity {
 
@@ -60,6 +65,11 @@ public class CBLiteConsoleActivity extends Activity {
         startDatabase();
         startEktorp();
 
+        initializeButtonActions();
+
+    }
+
+    private void initializeButtonActions() {
         final Button button = (Button) findViewById(R.id.button_alldocs);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -106,6 +116,59 @@ public class CBLiteConsoleActivity extends Activity {
             }
         });
 
+
+        final Button buttonDeleteDocs = (Button) findViewById(R.id.buttonDeleteDocs);
+        buttonDeleteDocs.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                new AlertDialog.Builder(CBLiteConsoleActivity.this)
+                        .setTitle("Are you sure you want to delete ALL docs?")
+                        .setMessage("Type 'I am sure'")
+                        .setView(input)
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                Editable value = input.getText();
+                                String stringValue = value.toString();
+                                if (stringValue.equalsIgnoreCase("I am sure")) {
+                                    deleteAllDocs();
+                                }
+                            }
+                        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        // Do nothing.
+                    }
+                }).show();
+            }
+        });
+
+    }
+
+    private void deleteAllDocs() {
+        EktorpAsyncTask asyncTask = new EktorpAsyncTask() {
+            @Override
+            protected void doInBackground() {
+                final int docCountBefore = database.getDocumentCount();
+
+                ViewQuery query = new ViewQuery().allDocs();
+                ViewResult viewResult = couchDbConnector.queryView(query);
+                for (ViewResult.Row row : viewResult) {
+                    String docId = row.getId();
+                    Log.d(TAG, "docId to delete: " + docId);
+                    //JsonNode docNode = row.getDocAsNode();
+                    //String revId = docNode.get("_rev").asText();
+                    TestObject testObject = couchDbConnector.get(TestObject.class, docId);
+                    couchDbConnector.delete(testObject);
+                }
+
+                CBLiteConsoleActivity.this.runOnUiThread(new Runnable() {
+                    public void run() {
+                        String message = String.format("Docs deleted.  Doc count before: %d, after: %d", docCountBefore, database.getDocumentCount());
+                        Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
+                        toast.show();
+                    }
+                });
+            }
+        };
+        asyncTask.execute();
     }
 
     private void createXTestDocs(final int numberOfDocs) {
@@ -122,7 +185,8 @@ public class CBLiteConsoleActivity extends Activity {
                     public void run() {
                         String message = String.format("Docs added.  Doc count before: %d, after: %d", docCountBefore, database.getDocumentCount());
                         Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
-                        toast.show();                    }
+                        toast.show();
+                    }
                 });
             }
         };
