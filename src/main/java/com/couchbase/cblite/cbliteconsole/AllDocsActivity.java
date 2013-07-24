@@ -9,13 +9,24 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.couchbase.cblite.CBLView;
+import com.couchbase.cblite.CBLViewMapBlock;
+import com.couchbase.cblite.CBLViewMapEmitBlock;
+
 import org.codehaus.jackson.JsonNode;
 import org.ektorp.ViewQuery;
+
+import java.util.Map;
 
 public class AllDocsActivity extends Activity {
 
     protected ListView allDocsListView;
     protected AllDocsListAdapter allDocsListViewAdapter;
+    String dDocName = "designDoc";
+    String dDocId = "_design/" + dDocName;
+    String viewName = "customAllDocsView";
+    String VIEWS_VERSION = "1.4";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,14 +35,31 @@ public class AllDocsActivity extends Activity {
 
         allDocsListView = (ListView)findViewById(R.id.listViewAllDocs);
 
-        //attach list adapter to the list and handle clicks
+        CBLView view = CBLiteConsoleActivity.database.getViewNamed(String.format("%s/%s", dDocName, viewName));
+
+        if (view.getMapBlock() == null) {
+            view.setMapReduceBlocks(
+                    new CBLViewMapBlock() {
+                        @Override
+                        public void map(Map<String, Object> stringObjectMap, CBLViewMapEmitBlock cblViewMapEmitBlock) {
+                            Log.d(CBLiteConsoleActivity.TAG, "view map() called with: " + stringObjectMap);
+                            cblViewMapEmitBlock.emit(stringObjectMap.get("_id"), null);
+                        }
+                    },
+                    null,
+                    VIEWS_VERSION
+            );
+        }
+
         ViewQuery viewQuery = new ViewQuery()
-                .allDocs()
+                .designDocId(dDocId)
+                .viewName(viewName)
                 .includeDocs(true);
 
         boolean followChanges = false;
         allDocsListViewAdapter = new AllDocsListAdapter(CBLiteConsoleActivity.couchDbConnector, viewQuery, followChanges, getApplicationContext());
         allDocsListView.setAdapter(allDocsListViewAdapter);
+
 
         // listening to single list item on click
         allDocsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

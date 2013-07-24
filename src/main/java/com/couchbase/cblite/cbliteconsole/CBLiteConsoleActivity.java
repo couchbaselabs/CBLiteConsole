@@ -33,7 +33,7 @@ public class CBLiteConsoleActivity extends Activity {
 
     protected static HttpClient httpClient;
     protected CBLServer server = null;
-    protected CBLDatabase database = null;
+    protected static CBLDatabase database = null;
     protected CouchDbInstance dbInstance;
     protected static CouchDbConnector couchDbConnector;
     protected String databaseName;
