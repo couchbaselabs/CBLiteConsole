@@ -25,8 +25,8 @@
         <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Add 1 Doc"
-                android:id="@+id/buttonAddDoc"
+                android:text="Add X Docs"
+                android:id="@+id/buttonAddXDocs"
                 android:layout_row="2"
                 android:layout_column="0"/>
 
@@ -41,18 +41,19 @@
         <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Add X Docs"
-                android:id="@+id/buttonAddXDocs"
-                android:layout_row="2"
-                android:layout_column="1"/>
-
-        <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:text="Delete All Docs"
                 android:id="@+id/buttonDeleteDocs"
                 android:layout_row="3"
                 android:layout_column="0"/>
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add X Docs + Attch"
+                android:id="@+id/buttonAddXDocsPlusAttachments"
+                android:layout_row="2"
+                android:layout_column="1"/>
+
     </GridLayout>
 
     <TextView

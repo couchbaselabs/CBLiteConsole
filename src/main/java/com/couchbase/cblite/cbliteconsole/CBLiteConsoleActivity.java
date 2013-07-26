@@ -22,6 +22,7 @@ import com.couchbase.cblite.ektorp.CBLiteHttpClient;
 import com.couchbase.cblite.router.CBLURLStreamHandlerFactory;
 
 import org.codehaus.jackson.JsonNode;
+import org.ektorp.AttachmentInputStream;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
 import org.ektorp.ViewQuery;
@@ -30,6 +31,7 @@ import org.ektorp.android.util.EktorpAsyncTask;
 import org.ektorp.http.HttpClient;
 import org.ektorp.impl.StdCouchDbInstance;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -73,21 +75,22 @@ public class CBLiteConsoleActivity extends Activity {
         final Button button = (Button) findViewById(R.id.button_alldocs);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                startActivity(new Intent(CBLiteConsoleActivity.this, AllDocsActivity.class));
-            }
-        });
+                if (database.getDocumentCount() > 0) {
+                    startActivity(new Intent(CBLiteConsoleActivity.this, AllDocsActivity.class));
+                }
+                else {
+                    String message = "The db is empty!";
+                    Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
+                    toast.show();
+                }
 
-        final Button buttonAddDoc = (Button) findViewById(R.id.buttonAddDoc);
-        buttonAddDoc.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                createXTestDocs(1);
             }
         });
 
         final Button buttonAddXDocs = (Button) findViewById(R.id.buttonAddXDocs);
-        final EditText input = new EditText(this);
         buttonAddXDocs.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                final EditText input = new EditText(CBLiteConsoleActivity.this);
                 new AlertDialog.Builder(CBLiteConsoleActivity.this)
                         .setTitle("How many docs?")
                         .setMessage("Enter the number of test docs you want to add")
@@ -98,6 +101,29 @@ public class CBLiteConsoleActivity extends Activity {
                                 String stringValue = value.toString();
                                 int intValue = Integer.parseInt(stringValue);
                                 createXTestDocs(intValue);
+                            }
+                        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        // Do nothing.
+                    }
+                }).show();
+            }
+        });
+
+        final Button buttonAddXDocsPlusAttachments = (Button) findViewById(R.id.buttonAddXDocsPlusAttachments);
+        buttonAddXDocsPlusAttachments.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                final EditText input = new EditText(CBLiteConsoleActivity.this);
+                new AlertDialog.Builder(CBLiteConsoleActivity.this)
+                        .setTitle("How many docs with attachments?")
+                        .setMessage("Enter the number of test docs you want to add")
+                        .setView(input)
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                Editable value = input.getText();
+                                String stringValue = value.toString();
+                                int intValue = Integer.parseInt(stringValue);
+                                createXTestDocsWithAttachments(intValue);
                             }
                         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
@@ -120,6 +146,7 @@ public class CBLiteConsoleActivity extends Activity {
         final Button buttonDeleteDocs = (Button) findViewById(R.id.buttonDeleteDocs);
         buttonDeleteDocs.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                final EditText input = new EditText(CBLiteConsoleActivity.this);
                 new AlertDialog.Builder(CBLiteConsoleActivity.this)
                         .setTitle("Are you sure you want to delete ALL docs?")
                         .setMessage("Type 'I am sure'")
@@ -193,6 +220,39 @@ public class CBLiteConsoleActivity extends Activity {
         asyncTask.execute();
 
     }
+
+    private void createXTestDocsWithAttachments(final int numberOfDocs) {
+
+        EktorpAsyncTask asyncTask = new EktorpAsyncTask() {
+            @Override
+            protected void doInBackground() {
+                final int docCountBefore = database.getDocumentCount();
+                for (int i=0; i<numberOfDocs; i++) {
+                    TestObject test = new TestObject(1, false, "console doc");
+
+                    couchDbConnector.create(test);
+
+                    //attach file to it
+                    byte[] attach1 = "This is the body of attach1".getBytes();
+                    ByteArrayInputStream b = new ByteArrayInputStream(attach1);
+                    AttachmentInputStream a = new AttachmentInputStream("attach", b, "text/plain");
+                    couchDbConnector.createAttachment(test.getId(), test.getRevision(), a);
+                }
+                CBLiteConsoleActivity.this.runOnUiThread(new Runnable() {
+                    public void run() {
+                        String message = String.format("Docs w/ attachments added.  Doc count before: %d, after: %d", docCountBefore, database.getDocumentCount());
+                        Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
+                        toast.show();
+                    }
+                });
+            }
+        };
+        asyncTask.execute();
+
+    }
+
+
+
 
     protected String getServerPath() {
         String filesDir = getFilesDir().getAbsolutePath();
