@@ -33,6 +33,7 @@ import org.ektorp.impl.StdCouchDbInstance;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 public class CBLiteConsoleActivity extends Activity {
@@ -233,9 +234,8 @@ public class CBLiteConsoleActivity extends Activity {
                     couchDbConnector.create(test);
 
                     //attach file to it
-                    byte[] attach1 = "This is the body of attach1".getBytes();
-                    ByteArrayInputStream b = new ByteArrayInputStream(attach1);
-                    AttachmentInputStream a = new AttachmentInputStream("attach", b, "text/plain");
+                    InputStream in = getResources().openRawResource(R.drawable.test_attachment);
+                    AttachmentInputStream a = new AttachmentInputStream("attach", in, "text/plain");
                     couchDbConnector.createAttachment(test.getId(), test.getRevision(), a);
                 }
                 CBLiteConsoleActivity.this.runOnUiThread(new Runnable() {
