@@ -14,6 +14,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.couchbase.cblite.CBLBlobKey;
+import com.couchbase.cblite.CBLBlobStore;
 import com.couchbase.cblite.CBLDatabase;
 import com.couchbase.cblite.CBLQueryOptions;
 import com.couchbase.cblite.CBLRevision;
@@ -35,6 +37,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.Set;
 
 public class CBLiteConsoleActivity extends Activity {
 
@@ -137,8 +140,22 @@ public class CBLiteConsoleActivity extends Activity {
         final Button buttonDBStats = (Button) findViewById(R.id.button_dbstats);
         buttonDBStats.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                String message = String.format("Number of docs in db: %s", database.getDocumentCount());
+                /*String message = String.format("Number of docs in db: %s", database.getDocumentCount());
                 Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
+                toast.show();*/
+                CBLBlobStore blobStore = database.getAttachments();
+                Set<CBLBlobKey> blobKeys = blobStore.allKeys();
+                StringBuffer messageBuffer = new StringBuffer();
+                for (CBLBlobKey blobKey : blobKeys) {
+                    messageBuffer.append("path: ");
+                    messageBuffer.append(blobStore.pathForKey(blobKey));
+                    messageBuffer.append("size: ");
+                    messageBuffer.append(blobStore.getSizeOfBlob(blobKey));
+                    messageBuffer.append("stream: ");
+                    messageBuffer.append(blobStore.blobStreamForKey(blobKey).toString());
+
+                }
+                Toast toast = Toast.makeText(getApplicationContext(), messageBuffer.toString(), Toast.LENGTH_LONG);
                 toast.show();
             }
         });
