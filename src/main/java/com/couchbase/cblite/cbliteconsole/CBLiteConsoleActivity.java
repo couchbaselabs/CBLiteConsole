@@ -140,10 +140,10 @@ public class CBLiteConsoleActivity extends Activity {
         final Button buttonDBStats = (Button) findViewById(R.id.button_dbstats);
         buttonDBStats.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                /*String message = String.format("Number of docs in db: %s", database.getDocumentCount());
+                String message = String.format("Number of docs in db: %s", database.getDocumentCount());
                 Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
-                toast.show();*/
-                CBLBlobStore blobStore = database.getAttachments();
+                toast.show();
+                /*CBLBlobStore blobStore = database.getAttachments();
                 Set<CBLBlobKey> blobKeys = blobStore.allKeys();
                 StringBuffer messageBuffer = new StringBuffer();
                 for (CBLBlobKey blobKey : blobKeys) {
@@ -156,10 +156,17 @@ public class CBLiteConsoleActivity extends Activity {
 
                 }
                 Toast toast = Toast.makeText(getApplicationContext(), messageBuffer.toString(), Toast.LENGTH_LONG);
-                toast.show();
+                toast.show();*/
             }
         });
 
+
+        final Button buttonTouchAllDocs = (Button) findViewById(R.id.buttonTouchAllDocs);
+        buttonTouchAllDocs.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                touchAllDocs();
+            }
+        });
 
         final Button buttonDeleteDocs = (Button) findViewById(R.id.buttonDeleteDocs);
         buttonDeleteDocs.setOnClickListener(new View.OnClickListener() {
@@ -215,6 +222,33 @@ public class CBLiteConsoleActivity extends Activity {
         };
         asyncTask.execute();
     }
+
+    private void touchAllDocs() {
+        EktorpAsyncTask asyncTask = new EktorpAsyncTask() {
+            @Override
+            protected void doInBackground() {
+                ViewQuery query = new ViewQuery().allDocs();
+                ViewResult viewResult = couchDbConnector.queryView(query);
+                for (ViewResult.Row row : viewResult) {
+                    String docId = row.getId();
+                    Log.d(TAG, "docId to update: " + docId);
+                    TestObject testObject = couchDbConnector.get(TestObject.class, docId);
+                    testObject.setFoo(testObject.getFoo()+1);
+                    couchDbConnector.update(testObject);
+                }
+
+                CBLiteConsoleActivity.this.runOnUiThread(new Runnable() {
+                    public void run() {
+                        String message = String.format("Docs updated.");
+                        Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
+                        toast.show();
+                    }
+                });
+            }
+        };
+        asyncTask.execute();
+    }
+
 
     private void createXTestDocs(final int numberOfDocs) {
 
