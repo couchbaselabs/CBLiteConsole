@@ -113,7 +113,7 @@ dependencies {
 
 ## Add entries to manifest.xml
 
-Under the <application> element, add the following activities:
+Under the `application` element, add the following activities:
 
 ```xml
 <activity

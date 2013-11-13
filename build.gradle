@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.5.+'
+        classpath 'com.android.tools.build:gradle:0.6.+'
     }
 }
 apply plugin: 'android-library'
@@ -17,7 +17,6 @@ repositories {
 dependencies {
     compile 'com.android.support:support-v4:13.0.+'
     compile project(':CBLite')
-    compile project(':CBLiteEktorp')
 }
 
 android {

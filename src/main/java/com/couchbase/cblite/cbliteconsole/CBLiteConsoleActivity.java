@@ -1,43 +1,20 @@
 package com.couchbase.cblite.cbliteconsole;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.app.Activity;
 import android.text.Editable;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.Toast;
 
-import com.couchbase.cblite.CBLBlobKey;
-import com.couchbase.cblite.CBLBlobStore;
 import com.couchbase.cblite.CBLDatabase;
-import com.couchbase.cblite.CBLQueryOptions;
-import com.couchbase.cblite.CBLRevision;
-import com.couchbase.cblite.CBLServer;
-import com.couchbase.cblite.ektorp.CBLiteHttpClient;
+import com.couchbase.cblite.CBLManager;
 import com.couchbase.cblite.router.CBLURLStreamHandlerFactory;
-
-import org.codehaus.jackson.JsonNode;
-import org.ektorp.AttachmentInputStream;
-import org.ektorp.CouchDbConnector;
-import org.ektorp.CouchDbInstance;
-import org.ektorp.ViewQuery;
-import org.ektorp.ViewResult;
-import org.ektorp.android.util.EktorpAsyncTask;
-import org.ektorp.http.HttpClient;
-import org.ektorp.impl.StdCouchDbInstance;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Set;
 
 public class CBLiteConsoleActivity extends Activity {
 
@@ -46,11 +23,8 @@ public class CBLiteConsoleActivity extends Activity {
     public static String TAG = "CBLiteConsole";
     public static String INTENT_PARAMETER_DATABASE_NAME = "INTENT_PARAMETER_DATABASE_NAME";
 
-    protected static HttpClient httpClient;
-    protected CBLServer server = null;
+    protected CBLManager manager = null;
     protected static CBLDatabase database = null;
-    protected CouchDbInstance dbInstance;
-    protected static CouchDbConnector couchDbConnector;
     protected String databaseName;
 
     @Override
@@ -69,7 +43,6 @@ public class CBLiteConsoleActivity extends Activity {
 
         startCBLite();
         startDatabase();
-        startEktorp();
 
         initializeButtonActions();
 
@@ -195,110 +168,23 @@ public class CBLiteConsoleActivity extends Activity {
     }
 
     private void deleteAllDocs() {
-        EktorpAsyncTask asyncTask = new EktorpAsyncTask() {
-            @Override
-            protected void doInBackground() {
-                final int docCountBefore = database.getDocumentCount();
 
-                ViewQuery query = new ViewQuery().allDocs();
-                ViewResult viewResult = couchDbConnector.queryView(query);
-                for (ViewResult.Row row : viewResult) {
-                    String docId = row.getId();
-                    Log.d(TAG, "docId to delete: " + docId);
-                    //JsonNode docNode = row.getDocAsNode();
-                    //String revId = docNode.get("_rev").asText();
-                    TestObject testObject = couchDbConnector.get(TestObject.class, docId);
-                    couchDbConnector.delete(testObject);
-                }
-
-                CBLiteConsoleActivity.this.runOnUiThread(new Runnable() {
-                    public void run() {
-                        String message = String.format("Docs deleted.  Doc count before: %d, after: %d", docCountBefore, database.getDocumentCount());
-                        Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
-                        toast.show();
-                    }
-                });
-            }
-        };
-        asyncTask.execute();
     }
 
     private void touchAllDocs() {
-        EktorpAsyncTask asyncTask = new EktorpAsyncTask() {
-            @Override
-            protected void doInBackground() {
-                ViewQuery query = new ViewQuery().allDocs();
-                ViewResult viewResult = couchDbConnector.queryView(query);
-                for (ViewResult.Row row : viewResult) {
-                    String docId = row.getId();
-                    Log.d(TAG, "docId to update: " + docId);
-                    TestObject testObject = couchDbConnector.get(TestObject.class, docId);
-                    testObject.setFoo(testObject.getFoo()+1);
-                    couchDbConnector.update(testObject);
-                }
 
-                CBLiteConsoleActivity.this.runOnUiThread(new Runnable() {
-                    public void run() {
-                        String message = String.format("Docs updated.");
-                        Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
-                        toast.show();
-                    }
-                });
-            }
-        };
-        asyncTask.execute();
     }
 
 
     private void createXTestDocs(final int numberOfDocs) {
 
-        EktorpAsyncTask asyncTask = new EktorpAsyncTask() {
-            @Override
-            protected void doInBackground() {
-                final int docCountBefore = database.getDocumentCount();
-                for (int i=0; i<numberOfDocs; i++) {
-                    TestObject test = new TestObject(1, false, "console doc");
-                    couchDbConnector.create(test);
-                }
-                CBLiteConsoleActivity.this.runOnUiThread(new Runnable() {
-                    public void run() {
-                        String message = String.format("Docs added.  Doc count before: %d, after: %d", docCountBefore, database.getDocumentCount());
-                        Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
-                        toast.show();
-                    }
-                });
-            }
-        };
-        asyncTask.execute();
+
 
     }
 
     private void createXTestDocsWithAttachments(final int numberOfDocs) {
 
-        EktorpAsyncTask asyncTask = new EktorpAsyncTask() {
-            @Override
-            protected void doInBackground() {
-                final int docCountBefore = database.getDocumentCount();
-                for (int i=0; i<numberOfDocs; i++) {
-                    TestObject test = new TestObject(1, false, "console doc");
 
-                    couchDbConnector.create(test);
-
-                    //attach file to it
-                    InputStream in = getResources().openRawResource(R.drawable.test_attachment);
-                    AttachmentInputStream a = new AttachmentInputStream("attach", in, "text/plain");
-                    couchDbConnector.createAttachment(test.getId(), test.getRevision(), a);
-                }
-                CBLiteConsoleActivity.this.runOnUiThread(new Runnable() {
-                    public void run() {
-                        String message = String.format("Docs w/ attachments added.  Doc count before: %d, after: %d", docCountBefore, database.getDocumentCount());
-                        Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
-                        toast.show();
-                    }
-                });
-            }
-        };
-        asyncTask.execute();
 
     }
 
@@ -311,42 +197,15 @@ public class CBLiteConsoleActivity extends Activity {
     }
 
     protected void startCBLite() {
-        try {
-            server = new CBLServer(getServerPath());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        manager = new CBLManager(getFilesDir());
     }
 
     protected void startDatabase() {
-        database = server.getDatabaseNamed(databaseName, true);
+        database = manager.getDatabase(databaseName);
         database.open();
     }
 
-    protected void startEktorp() {
 
-        if(httpClient != null) {
-            httpClient.shutdown();
-        }
-
-        httpClient = new CBLiteHttpClient(server);
-        dbInstance = new StdCouchDbInstance(httpClient);
-
-        EktorpAsyncTask startupTask = new EktorpAsyncTask() {
-
-            @Override
-            protected void doInBackground() {
-                couchDbConnector = dbInstance.createConnector(databaseName, true);
-            }
-
-            @Override
-            protected void onSuccess() {
-                Log.d(TAG, "Ektorp started OK");
-            }
-
-        };
-        startupTask.execute();
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
