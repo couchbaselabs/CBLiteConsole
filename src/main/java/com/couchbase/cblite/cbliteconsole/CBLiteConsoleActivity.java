@@ -44,13 +44,13 @@ public class CBLiteConsoleActivity extends Activity {
     }
 
     private void initializeButtonActions() {
-        final Button button = (Button) findViewById(R.id.button_alldocs);
-        button.setOnClickListener(new View.OnClickListener() {
+
+        final Button buttonAllDocs = (Button) findViewById(R.id.button_alldocs);
+        buttonAllDocs.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (database.getDocumentCount() > 0) {
                     startActivity(new Intent(CBLiteConsoleActivity.this, AllDocsActivity.class));
-                }
-                else {
+                } else {
                     String message = "The db is empty!";
                     Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
                     toast.show();
