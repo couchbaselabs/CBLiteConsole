@@ -29,17 +29,12 @@ public class CBLiteConsoleActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cblite_console);
 
         Bundle b = getIntent().getExtras();
         databaseName = b.getString(INTENT_PARAMETER_DATABASE_NAME);
-
-        //for some reason a traditional static initializer causes junit to die
-        if(!initializedUrlHandler) {
-            CBLURLStreamHandlerFactory.registerSelfIgnoreError();
-            initializedUrlHandler = true;
-        }
 
         startCBLite();
         startDatabase();
