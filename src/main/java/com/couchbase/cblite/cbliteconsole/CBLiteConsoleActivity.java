@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.couchbase.cblite.CBLDatabase;
 import com.couchbase.cblite.CBLManager;
 import com.couchbase.cblite.router.CBLURLStreamHandlerFactory;
+import com.couchbase.cblite.support.CBLApplication;
 
 public class CBLiteConsoleActivity extends Activity {
 
@@ -36,8 +37,14 @@ public class CBLiteConsoleActivity extends Activity {
         Bundle b = getIntent().getExtras();
         databaseName = b.getString(INTENT_PARAMETER_DATABASE_NAME);
 
-        startCBLite();
-        startDatabase();
+        CBLApplication application = (CBLApplication) getApplication();
+        manager = application.getManager();
+        database = manager.getExistingDatabase(databaseName);
+
+        if (database == null) {
+            String message = String.format("No existing database found with name: %s", databaseName);
+            throw new IllegalStateException(message);
+        }
 
         initializeButtonActions();
 
@@ -180,26 +187,7 @@ public class CBLiteConsoleActivity extends Activity {
     private void createXTestDocsWithAttachments(final int numberOfDocs) {
 
 
-
     }
-
-
-
-
-    protected String getServerPath() {
-        String filesDir = getFilesDir().getAbsolutePath();
-        return filesDir;
-    }
-
-    protected void startCBLite() {
-        manager = new CBLManager(getFilesDir());
-    }
-
-    protected void startDatabase() {
-        database = manager.getDatabase(databaseName);
-        database.open();
-    }
-
 
 
     @Override
