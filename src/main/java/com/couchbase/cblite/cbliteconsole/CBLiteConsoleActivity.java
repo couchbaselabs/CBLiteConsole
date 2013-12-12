@@ -12,10 +12,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.couchbase.cblite.CBLDatabase;
-import com.couchbase.cblite.CBLManager;
-import com.couchbase.cblite.router.CBLURLStreamHandlerFactory;
-import com.couchbase.cblite.support.CBLApplication;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.Manager;
+import com.couchbase.lite.support.CouchbaseLiteApplication;
 
 public class CBLiteConsoleActivity extends Activity {
 
@@ -24,8 +23,8 @@ public class CBLiteConsoleActivity extends Activity {
     public static String TAG = "CBLiteConsole";
     public static String INTENT_PARAMETER_DATABASE_NAME = "INTENT_PARAMETER_DATABASE_NAME";
 
-    protected CBLManager manager = null;
-    protected static CBLDatabase database = null;
+    protected Manager manager = null;
+    protected static Database database = null;
     protected String databaseName;
 
     @Override
@@ -37,7 +36,7 @@ public class CBLiteConsoleActivity extends Activity {
         Bundle b = getIntent().getExtras();
         databaseName = b.getString(INTENT_PARAMETER_DATABASE_NAME);
 
-        CBLApplication application = (CBLApplication) getApplication();
+        CouchbaseLiteApplication application = (CouchbaseLiteApplication) getApplication();
         manager = application.getManager();
         database = manager.getExistingDatabase(databaseName);
 

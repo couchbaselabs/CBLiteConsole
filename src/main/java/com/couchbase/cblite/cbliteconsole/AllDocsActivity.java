@@ -7,17 +7,15 @@ import android.view.Menu;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.couchbase.cblite.CBLDatabase;
-import com.couchbase.cblite.CBLDocument;
-import com.couchbase.cblite.CBLMapEmitFunction;
-import com.couchbase.cblite.CBLMapFunction;
-import com.couchbase.cblite.CBLQuery;
-import com.couchbase.cblite.CBLQueryEnumerator;
-import com.couchbase.cblite.CBLQueryRow;
-import com.couchbase.cblite.CBLView;
-import com.couchbase.cblite.CBLiteException;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.Document;
+import com.couchbase.lite.Emitter;
+import com.couchbase.lite.Mapper;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.QueryRow;
+import com.couchbase.lite.View;
 
-import java.util.Iterator;
 import java.util.Map;
 
 public class AllDocsActivity extends Activity {
@@ -27,7 +25,7 @@ public class AllDocsActivity extends Activity {
     String dDocId = "_design/" + dDocName;
     String viewName = "customAllDocsView";
     String VIEWS_VERSION = "1.4";
-    private CBLDatabase database = CBLiteConsoleActivity.database;
+    private Database database = CBLiteConsoleActivity.database;
 
 
     @Override
@@ -38,13 +36,13 @@ public class AllDocsActivity extends Activity {
 
         allDocsListView = (ListView)findViewById(R.id.listViewAllDocs);
 
-        CBLView view = database.getView(String.format("%s/%s", dDocName, viewName));
+        View view = database.getView(String.format("%s/%s", dDocName, viewName));
 
         if (view.getMap() == null) {
             view.setMap(
-                    new CBLMapFunction() {
+                    new Mapper() {
                         @Override
-                        public void map(Map<String, Object> stringObjectMap, CBLMapEmitFunction cblViewMapEmitBlock) {
+                        public void map(Map<String, Object> stringObjectMap, Emitter cblViewMapEmitBlock) {
                             Log.d(CBLiteConsoleActivity.TAG, "view map() called with: " + stringObjectMap);
                             cblViewMapEmitBlock.emit(stringObjectMap.get("_id"), null);
                         }
@@ -54,11 +52,11 @@ public class AllDocsActivity extends Activity {
         }
 
         try {
-            CBLQuery query = view.createQuery();
-            CBLQueryEnumerator queryEnumerator = query.getRows();
+            Query query = view.createQuery();
+            QueryEnumerator queryEnumerator = query.run();
             while (queryEnumerator.hasNext()) {
-                CBLQueryRow row = queryEnumerator.getNextRow();
-                CBLDocument document = database.getDocument(row.getDocumentId());
+                QueryRow row = queryEnumerator.next();
+                Document document = database.getDocument(row.getDocumentId());
                 String message = String.format(
                         "row doc id: %s rev id: %s",
                         row.getDocumentId(),
@@ -67,7 +65,7 @@ public class AllDocsActivity extends Activity {
                 Log.i(CBLiteConsoleActivity.TAG, message);
             }
 
-        } catch (CBLiteException e) {
+        } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Error querying rows", Toast.LENGTH_LONG).show();
             Log.e(CBLiteConsoleActivity.TAG, e.getLocalizedMessage(), e);
         }
