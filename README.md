@@ -1,4 +1,6 @@
 
+⚠️ This repo is obsolete.  It is based on a version of Couchbase Lite that has been end of life for years.
+
 # CBLiteConsole
 
 CBLiteConsole is a debugging tool for apps based on [Couchbase Lite](https://github.com/couchbase/couchbase-lite-android).
